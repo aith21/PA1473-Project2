@@ -10,7 +10,7 @@ MENUTEXT = """What do you want to do?
 (2) Pick a position to put down
 (3) Close"""
 
-boolcheckcolor=True
+boolcheckcolor=False
 
 # Initialize the EV3 Brick
 ev3 = EV3Brick()
@@ -73,10 +73,11 @@ def pickup(pos,cc):
     elbowdown()
     closegrip()
     if cc is True:
-        checkcolor()
-
+        color = checkcolor()
     elbowup()
     ev3.speaker.beep()
+    if cc is True:
+        return color
 
 def checkcolor():
     Colorfound = False
@@ -103,11 +104,9 @@ def checkcolor():
                 ev3.screen.print("YELLOW COLOR")
 
             Colorfound = True
-       
+    return measuredcolor
     ev3.speaker.beep()
     
-
-
 def pickupposition(pos):
 
     elbowup()
@@ -119,9 +118,7 @@ def gotoposition(pos):
 
 def setbaseposition():
     ev3.screen.print("SETTING BASE POSITION...")
-
     elbowup()
-
     base_motor.run(-60)
     while not touch_sensor.pressed():
         pass
@@ -131,41 +128,42 @@ def setbaseposition():
 
     ev3.screen.print("BASE POSITION FOUND")
 
-def dropoff(position):
+def dropoff(position, color):
+    if color == Color.BLUE:
+        position = positions[0]
+    if color == Color.RED:
+        position = positions[1]
+    if color == Color.GREEN:
+        position = positions[2]
+    if color == Color.YELLOW:
+        position = positions[3]
     gotoposition(position)
     elbowdown()
     opengrip()
     elbowup()
     
 def gotoendposition():
+    ev3.speaker.say("going back to start position")
     elbowup()
-    gotoposition(40)
+    gotoposition(38)
     elbowdown()
-
-
 
 def run():
     ev3.screen.print("Starting")
     #printmenu()
     gotoposition(30)
     setbaseposition()
-    pickup(positions[0], boolcheckcolor)
-    dropoff(positions[3])
-    pickup(positions[2], boolcheckcolor)
-    dropoff(positions[0])
+    mycolor = pickup(positions[0], boolcheckcolor)
+    dropoff(positions[3], mycolor)
     gotoendposition()
     ev3.screen.print("Finished")
-    wait(3000)
-    ev3.speaker.beep()
-    ev3.speaker.beep()
-    ev3.speaker.beep()
+    ev3.speaker.say("I am finished goodbye")
 
 
 
     
 
 run()
-#ev3.speaker.say("Why are you late Fabian")
 
 
 
