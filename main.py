@@ -10,8 +10,6 @@ MENUTEXT = """What do you want to do?
 (2) Pick a position to put down
 (3) Close"""
 
-boolcheckcolor=False
-
 # Initialize the EV3 Brick
 ev3 = EV3Brick()
 
@@ -25,34 +23,68 @@ touch_sensor = TouchSensor(Port.S1)
 
 color_sensor = ColorSensor(Port.S2)
 
-#color_sensor = ColorSensor(Port.S2)
-
+positions = [177,135,82,-15]
+colors = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN]
+colorswnone = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN, None]
 elbow_motor.control.limits(speed=120, acceleration=120)
 base_motor.control.limits(speed=120, acceleration=120)
 
-#positions on paper in degrees
-#pos1=180
-#pos2=135
-#pos3=90
-#pos4=0
 
-positions = [177,135,82,-15]
-colors = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN]
-
-def printmenu():
+def menu():
+    #HELA MENYN
     choice = 0
     print(MENUTEXT)
     choice = input("Your choice: ")
+
+
+def startup():
+    ev3.screen.print("Starting")
+    gotoposition(30)
+    setbaseposition()
+
+
+def finished():
+    gotoendposition()
+    ev3.screen.print("Finished")
+    ev3.speaker.say("I am finished goodbye")
+
+
+def setbaseposition():
+    ev3.screen.print("SETTING BASE POSITION...")
+    elbowup()
+    base_motor.run(-60)
+    while not touch_sensor.pressed():
+        pass
+    base_motor.stop()
+    wait(1000)
+    base_motor.reset_angle(0)
+
+    ev3.screen.print("BASE POSITION FOUND")
+
+
+def gotoendposition():
+    ev3.speaker.say("going back to start position")
+    elbowup()
+    gotoposition(38)
+    elbowdown()
+
+
+def gotoposition(pos):
+    elbowup()
+    base_motor.run_target(60, pos)
+
+
+def pickupposition(pos):
+
+    elbowup()
+    base_motor.run_target(90, pos)
+
 
 def closegrip():  
     ev3.screen.print("CLOSE GRIP")
     gripper_motor.run_until_stalled(200, then=Stop.HOLD, duty_limit=50)
     gripper_motor.reset_angle(0) 
 
-def elbowup():
-    ev3.screen.print("ELBOW UP")
-    elbow_motor.run_until_stalled(50, then=Stop.HOLD, duty_limit=50)
-    elbow_motor.reset_angle(90) 
 
 def opengrip():
     ev3.screen.print("OPEN GRIP")
@@ -60,31 +92,25 @@ def opengrip():
     gripper_motor.reset_angle(0) 
     gripper_motor.run_target(200, -90)
 
+
+def elbowup():
+    ev3.screen.print("ELBOW UP")
+    elbow_motor.run_until_stalled(50, then=Stop.HOLD, duty_limit=50)
+    elbow_motor.reset_angle(90) 
+
+
 def elbowdown():
     ev3.screen.print("ELBOW DOWN")
-    elbow_motor.run_until_stalled(-50, then=Stop.COAST, duty_limit=50)
+    elbow_motor.run_until_stalled(-50, then=Stop.COAST, duty_limit=25)
 
-def pickup(pos,cc):
-    ev3.screen.print("PICK UP")
-
-    pickupposition(pos) 
-
-    opengrip()
-    elbowdown()
-    closegrip()
-    if cc is True:
-        color = checkcolor()
-    elbowup()
-    ev3.speaker.beep()
-    if cc is True:
-        return color
 
 def checkcolor():
     Colorfound = False
     ev3.speaker.say("Will check color")
     elbow_motor.reset_angle(0)
-    elbow_motor.run_target(50, 40)
+    elbow_motor.run_target(50, 50)
     wait(2000)
+
     while Colorfound == False:
         # Read the raw RGB values
         measuredcolor = color_sensor.color()
@@ -107,57 +133,48 @@ def checkcolor():
     return measuredcolor
     ev3.speaker.beep()
     
-def pickupposition(pos):
 
+def pickup(pos,cc):
+    ev3.screen.print("PICK UP")
+
+    pickupposition(pos) 
+
+    opengrip()
+    elbowdown()
+    closegrip()
+    if cc is True:
+        color = checkcolor()
     elbowup()
-    base_motor.run_target(90, pos)
+    ev3.speaker.beep()
+    if cc is True:
+        return color
 
-def gotoposition(pos):
-    elbowup()
-    base_motor.run_target(60, pos)
 
-def setbaseposition():
-    ev3.screen.print("SETTING BASE POSITION...")
-    elbowup()
-    base_motor.run(-60)
-    while not touch_sensor.pressed():
-        pass
-    base_motor.stop()
-    wait(1000)
-    base_motor.reset_angle(0)
-
-    ev3.screen.print("BASE POSITION FOUND")
-
-def dropoff(position, color):
-    if color == Color.BLUE:
-        position = positions[0]
-    if color == Color.RED:
-        position = positions[1]
-    if color == Color.GREEN:
-        position = positions[2]
-    if color == Color.YELLOW:
-        position = positions[3]
+def dropoff(position, color, dropcolorspecial):
+    if dropcolorspecial == True:    
+        if color == Color.BLUE:
+            position = positions[0]
+        if color == Color.RED:
+            position = positions[1]
+        if color == Color.GREEN:
+            position = positions[2]
+        if color == Color.YELLOW:
+            position = positions[3]
     gotoposition(position)
     elbowdown()
     opengrip()
     elbowup()
-    
-def gotoendposition():
-    ev3.speaker.say("going back to start position")
-    elbowup()
-    gotoposition(38)
-    elbowdown()
+
 
 def run():
-    ev3.screen.print("Starting")
-    #printmenu()
-    gotoposition(30)
-    setbaseposition()
-    mycolor = pickup(positions[0], boolcheckcolor)
-    dropoff(positions[3], mycolor)
-    gotoendposition()
-    ev3.screen.print("Finished")
-    ev3.speaker.say("I am finished goodbye")
+    #checkcolor if False does not check color, if true does check color
+    checkcolor=False
+    dropcolorspecial=False
+    startup()
+    mycolor = pickup(positions[3], checkcolor)
+    dropoff(positions[0], mycolor, dropcolorspecial)
+    finished()
+
 
 
 
