@@ -2,12 +2,15 @@
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, TouchSensor, ColorSensor
 from pybricks.parameters import Port, Stop, Direction
+from pybricks.parameters import Color, SoundFile
 from pybricks.tools import wait
 
 MENUTEXT = """What do you want to do?
 (1) Pick a position to pick up from
 (2) Pick a position to put down
 (3) Close"""
+
+boolcheckcolor=True
 
 # Initialize the EV3 Brick
 ev3 = EV3Brick()
@@ -20,6 +23,10 @@ base_motor = Motor(Port.C, Direction.COUNTERCLOCKWISE, [12, 36])
 
 touch_sensor = TouchSensor(Port.S1)
 
+color_sensor = ColorSensor(Port.S2)
+
+#color_sensor = ColorSensor(Port.S2)
+
 elbow_motor.control.limits(speed=120, acceleration=120)
 base_motor.control.limits(speed=120, acceleration=120)
 
@@ -30,6 +37,7 @@ base_motor.control.limits(speed=120, acceleration=120)
 #pos4=0
 
 positions = [177,135,82,-15]
+colors = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN]
 
 def printmenu():
     choice = 0
@@ -56,20 +64,54 @@ def elbowdown():
     ev3.screen.print("ELBOW DOWN")
     elbow_motor.run_until_stalled(-50, then=Stop.COAST, duty_limit=50)
 
-def pickup(pos):
+def pickup(pos,cc):
     ev3.screen.print("PICK UP")
 
-    pickupposition(pos)    
+    pickupposition(pos) 
+
     opengrip()
     elbowdown()
     closegrip()
+    if cc is True:
+        checkcolor()
+
     elbowup()
     ev3.speaker.beep()
+
+def checkcolor():
+    Colorfound = False
+    ev3.speaker.say("Will check color")
+    elbow_motor.reset_angle(0)
+    elbow_motor.run_target(50, 40)
+    wait(2000)
+    while Colorfound == False:
+        # Read the raw RGB values
+        measuredcolor = color_sensor.color()
+
+        if measuredcolor in colors:
+            if measuredcolor == Color.BLUE:
+                ev3.speaker.say("blue")
+                ev3.screen.print("BLUE COLOR")
+            elif measuredcolor == Color.RED:
+                ev3.speaker.say("red")
+                ev3.screen.print("RED COLOR")
+            elif measuredcolor == Color.GREEN:
+                ev3.speaker.say("green")
+                ev3.screen.print("GREEN COLOR")
+            elif measuredcolor == Color.YELLOW:
+                ev3.speaker.say("yellow")
+                ev3.screen.print("YELLOW COLOR")
+
+            Colorfound = True
+       
+    ev3.speaker.beep()
+    
+
 
 def pickupposition(pos):
 
     elbowup()
-    base_motor.run_target(60, pos)
+    base_motor.run_target(90, pos)
 
 def gotoposition(pos):
     elbowup()
@@ -80,7 +122,7 @@ def setbaseposition():
 
     elbowup()
 
-    base_motor.run(-100)
+    base_motor.run(-60)
     while not touch_sensor.pressed():
         pass
     base_motor.stop()
@@ -101,14 +143,15 @@ def gotoendposition():
     elbowdown()
 
 
+
 def run():
     ev3.screen.print("Starting")
     #printmenu()
     gotoposition(30)
     setbaseposition()
-    pickup(positions[0])
+    pickup(positions[0], boolcheckcolor)
     dropoff(positions[3])
-    pickup(positions[2])
+    pickup(positions[2], boolcheckcolor)
     dropoff(positions[0])
     gotoendposition()
     ev3.screen.print("Finished")
@@ -122,3 +165,11 @@ def run():
     
 
 run()
+#ev3.speaker.say("Why are you late Fabian")
+
+
+
+
+
+
+
