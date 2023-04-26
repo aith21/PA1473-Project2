@@ -25,7 +25,6 @@ color_sensor = ColorSensor(Port.S2)
 
 positions = [177,135,82,-15]
 colors = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN]
-colorswnone = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN, None]
 elbow_motor.control.limits(speed=120, acceleration=120)
 base_motor.control.limits(speed=120, acceleration=120)
 
@@ -83,7 +82,7 @@ def pickupposition(pos):
 def closegrip():  
     ev3.screen.print("CLOSE GRIP")
     gripper_motor.run_until_stalled(200, then=Stop.HOLD, duty_limit=50)
-    gripper_motor.reset_angle(0) 
+     
 
 
 def opengrip():
@@ -134,7 +133,7 @@ def checkcolor():
     ev3.speaker.beep()
     
 
-def pickup(pos,cc):
+def pickup(pos,cc,ca):
     ev3.screen.print("PICK UP")
 
     pickupposition(pos) 
@@ -144,10 +143,13 @@ def pickup(pos,cc):
     closegrip()
     if cc is True:
         color = checkcolor()
+    if ca is True:
+        angle = check_angle()
     elbowup()
     ev3.speaker.beep()
     if cc is True:
         return color
+
 
 
 def dropoff(position, color, dropcolorspecial):
@@ -165,26 +167,32 @@ def dropoff(position, color, dropcolorspecial):
     opengrip()
     elbowup()
 
+def check_angle():
+    isblock = False
+    angle=(gripper_motor.angle())
+    ev3.screen.print(str(angle))
+
+    if angle<-20:
+        print("The motor is holding a block.")
+
+        isblock = True
+    else:
+        print("The motor is not holding a block.")
+    wait(1000)
+    return isblock
 
 def run():
     #checkcolor if False does not check color, if true does check color
     checkcolor=False
     dropcolorspecial=False
+    checkangle=False
     startup()
-    mycolor = pickup(positions[3], checkcolor)
+    mycolor = pickup(positions[3], checkcolor, checkangle)
     dropoff(positions[0], mycolor, dropcolorspecial)
     finished()
+   
 
-
-
-
-    
 
 run()
-
-
-
-
-
 
 
