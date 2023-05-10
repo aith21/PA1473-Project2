@@ -214,6 +214,18 @@ def elevated_pickup(pos, elevation):
     dropoff(positions[0], mycolor, dropcolorspecial)
     finished()
 
+def elevated_dropoff(pos, elevation):
+    checkcolor=False
+    dropcolorspecial=False
+    checkangle=True
+    mycolor = []
+
+    gotoposition(pos)
+    elbowup()
+    elbow_motor.run_target(50, elevation)
+    opengrip()
+    finished()
+    
     
 
 def run():
@@ -245,6 +257,19 @@ def run_until_block():
 
 #run()
 
-run_until_block()
+#run_until_block()
 
 #elevated_pickup(positions[3], 0)
+
+def runtest():
+    checkcolor=False
+    dropcolorspecial=False
+    checkangle=False
+    startup()
+
+    mycolor = pickup(positions[3], checkcolor)
+
+    elevated_dropoff(positions[2], 0)
+
+#runtest()
+
