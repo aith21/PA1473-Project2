@@ -23,7 +23,8 @@ touch_sensor = TouchSensor(Port.S1)
 
 color_sensor = ColorSensor(Port.S2)
 
-positions = [177,135,82,-15]
+#positions = [177,135,82,-15]
+positions = [180,140,90,0]
 colors = [Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN]
 elbow_motor.control.limits(speed=120, acceleration=120)
 base_motor.control.limits(speed=120, acceleration=120)
@@ -35,6 +36,11 @@ def menu():
     print(MENUTEXT)
     choice = input("Your choice: ")
 
+def variabler():
+    checkcolor=False
+    dropcolorspecial=False
+    checkangle=True
+    mycolor = []
 
 def startup():
     ev3.screen.print("Starting")
@@ -192,19 +198,29 @@ def check_if_present(pos):
 
 
 def elevated_pickup(pos, elevation): 
+    checkcolor=False
+    dropcolorspecial=False
+    checkangle=True
+    mycolor = []
+
     startup() 
     pickupposition(pos)
     opengrip()
     elbowup()
-    elbow_motor.run_target(50, 80)
-    
+    elbow_motor.run_target(50, elevation)
+    wait(2000)
+    closegrip()
+    elbowup()
+    dropoff(positions[0], mycolor, dropcolorspecial)
+    finished()
 
+    
 
 def run():
     #checkcolor if False does not check color, if true does check color
     checkcolor=False
     dropcolorspecial=False
-    checkangle=True
+    checkangle=False
     startup()
     mycolor = pickup(positions[3], checkcolor)
     if checkangle == True:
@@ -216,7 +232,7 @@ def run():
     dropoff(positions[0], mycolor, dropcolorspecial)
     finished()
    
-def runrun():
+def run_until_block():
     checkcolor=False
     dropcolorspecial=False
     checkangle=True
@@ -229,6 +245,6 @@ def runrun():
 
 #run()
 
-#runrun()
+run_until_block()
 
-elevated_pickup(positions[0], 1)
+#elevated_pickup(positions[3], 0)
