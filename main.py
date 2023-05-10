@@ -107,7 +107,7 @@ def checkcolor():
     Colorfound = False
     ev3.speaker.say("Will check color")
     elbow_motor.reset_angle(0)
-    elbow_motor.run_target(50, 50)
+    elbow_motor.run_target(50, 40)
     wait(2000)
 
     while Colorfound == False:
@@ -133,7 +133,7 @@ def checkcolor():
     ev3.speaker.beep()
     
 
-def pickup(pos,cc,ca):
+def pickup(pos,cc):
     ev3.screen.print("PICK UP")
 
     pickupposition(pos) 
@@ -143,8 +143,6 @@ def pickup(pos,cc,ca):
     closegrip()
     if cc is True:
         color = checkcolor()
-    if ca is True:
-        angle = check_angle()
     elbowup()
     ev3.speaker.beep()
     if cc is True:
@@ -176,23 +174,61 @@ def check_angle():
         print("The motor is holding a block.")
 
         isblock = True
+    
     else:
         print("The motor is not holding a block.")
     wait(1000)
     return isblock
 
+def check_if_present(pos):
+    isblock = False
+    pickupposition(pos)
+    while isblock == False:
+        opengrip()
+        elbowdown()
+        closegrip()
+        isblock = check_angle()
+        elbowup()
+
+
+def elevated_pickup(pos, elevation): 
+    startup() 
+    pickupposition(pos)
+    opengrip()
+    elbowup()
+    elbow_motor.run_target(50, 80)
+    
+
+
 def run():
     #checkcolor if False does not check color, if true does check color
     checkcolor=False
     dropcolorspecial=False
-    checkangle=False
+    checkangle=True
     startup()
-    mycolor = pickup(positions[3], checkcolor, checkangle)
+    mycolor = pickup(positions[3], checkcolor)
+    if checkangle == True:
+        isblock = check_angle()
+        if isblock == False:
+            ev3.speaker.say("There is no FUCKING block")
+            finished()
+            return
     dropoff(positions[0], mycolor, dropcolorspecial)
     finished()
    
+def runrun():
+    checkcolor=False
+    dropcolorspecial=False
+    checkangle=True
+    mycolor = []
+    startup()
+    check_if_present(positions[2])
+    dropoff(positions[0], mycolor, dropcolorspecial)
+    finished()
 
 
-run()
+#run()
 
+#runrun()
 
+elevated_pickup(positions[0], 1)
